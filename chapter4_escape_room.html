@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Locked Case Files</title>
+<meta name="description" content="KSG3613 Introduction to Ethics, Chapter 4: Confidentiality. An escape room assessment.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   SETTINGS: paste your Google Apps Script web app URL below.
+   ============================================================ */
+:root{
+  --cream:#FBF6EC; --paper:#FFFDF8; --ink:#1E2A2F; --muted:#5A6468;
+  --teal:#1F7A72; --teal-dark:#155952; --teal-soft:#DCEFEC;
+  --coral:#C9503A; --coral-soft:#FBE4DE;
+  --amber:#E8A33D; --amber-soft:#FCEFD6;
+  --violet:#5E4F9C; --violet-soft:#E9E5F5;
+  --manila:#EBD3A0; --manila-dark:#C9A86A; --line:#E4DACA;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font-family:'Spline Sans',system-ui,sans-serif;font-size:17px;line-height:1.55;min-height:100vh}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;line-height:1.15;margin:0}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:880px;margin:0 auto;padding:28px 16px 64px}
+.hidden{display:none!important}
+
+/* top bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:22px}
+.course{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12.5px;color:var(--teal-dark)}
+.keys{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.keys svg{color:var(--amber)}
+
+/* cards */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 2px 0 var(--line)}
+.eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--coral)}
+
+/* intro */
+.hero h1{font-size:clamp(38px,7vw,60px);font-weight:800;letter-spacing:-.01em;margin:8px 0 14px}
+.hero p{margin:0 0 14px;max-width:62ch}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0}
+.rule{background:var(--cream);border-radius:14px;padding:14px 16px;font-size:15px}
+.rule b{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--teal-dark)}
+form .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+label{display:block;font-weight:600;font-size:14.5px;margin-bottom:6px}
+input[type=text]{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;background:#fff;color:var(--ink);min-height:48px}
+input[type=text]:focus{outline:3px solid var(--teal-soft);border-color:var(--teal)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:12px 26px;border:none;border-radius:999px;background:var(--teal);color:#fff;font-weight:700;font-size:17px}
+.btn:hover{background:var(--teal-dark)}
+.btn:disabled{background:#9BB8B4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--teal-dark);border:2px solid var(--teal)}
+.error{color:var(--coral);font-size:14.5px;margin-top:10px;min-height:1em}
+
+/* map */
+.map-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.map-head h2{font-size:34px}
+.files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.file{position:relative;text-align:left;border:none;background:var(--manila);border-radius:6px 14px 14px 14px;padding:34px 18px 18px;min-height:170px;color:var(--ink);display:flex;flex-direction:column;gap:6px;transition:transform .15s}
+.file::before{content:"";position:absolute;top:-14px;left:0;width:46%;height:16px;background:var(--manila);border-radius:8px 8px 0 0}
+.file .num{font-family:'Fraunces',serif;font-weight:800;font-size:15px;letter-spacing:.08em;color:#7A5A1E}
+.file .name{font-family:'Fraunces',serif;font-weight:700;font-size:22px;line-height:1.15}
+.file .topic{font-size:14px;color:#5B4A2A}
+.file .state{margin-top:auto;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.file.open{box-shadow:0 0 0 3px var(--teal)}
+.file.open:hover{transform:translateY(-3px)}
+.file.locked{background:#E3DCCD;cursor:not-allowed;color:#7C7468}
+.file.locked::before{background:#E3DCCD}
+.file.locked .num,.file.locked .topic{color:#8C8477}
+.file.done{background:var(--teal-soft);cursor:default}
+.file.done::before{background:var(--teal-soft)}
+.stamp{position:absolute;top:16px;right:14px;transform:rotate(8deg);border:2.5px solid var(--teal);color:var(--teal);font-weight:800;font-size:12px;letter-spacing:.14em;padding:3px 8px;border-radius:6px}
+
+/* room */
+.room-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:18px}
+.room-icon{flex:0 0 64px;height:64px;border-radius:16px;background:var(--violet-soft);color:var(--violet);display:flex;align-items:center;justify-content:center}
+.room-head h2{font-size:32px;margin-top:4px}
+.scene{background:var(--manila);border-radius:6px 14px 14px 14px;padding:18px 20px;margin-bottom:20px;font-size:16px;position:relative}
+.scene b{font-family:'Fraunces',serif}
+.progress{display:flex;gap:6px;margin-bottom:14px}
+.progress span{flex:1;height:7px;border-radius:4px;background:var(--line)}
+.progress span.now{background:var(--amber)}
+.progress span.ok{background:var(--teal)}
+.progress span.no{background:var(--coral)}
+.qnum{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.question{font-family:'Fraunces',serif;font-weight:600;font-size:23px;line-height:1.3;margin:6px 0 18px}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;min-height:56px;padding:14px 16px;border:2px solid var(--line);background:#fff;border-radius:14px;color:var(--ink);font-size:16.5px}
+.opt:hover:not(:disabled){border-color:var(--teal)}
+.opt .letter{flex:0 0 30px;height:30px;border-radius:50%;background:var(--cream);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--teal);background:var(--teal-soft)}
+.opt.right .letter{background:var(--teal);color:#fff}
+.opt.wrong{border-color:var(--coral);background:var(--coral-soft)}
+.opt.wrong .letter{background:var(--coral);color:#fff}
+.opt.dim{opacity:.55}
+.feedback{margin-top:18px;border-radius:14px;padding:16px 18px;font-size:16px}
+.feedback.ok{background:var(--teal-soft)}
+.feedback.no{background:var(--coral-soft)}
+.feedback h3{font-size:20px;margin-bottom:4px}
+.feedback.ok h3{color:var(--teal-dark)}
+.feedback.no h3{color:#9C3B29}
+.actions{display:flex;justify-content:flex-end;margin-top:18px}
+
+/* unlock overlay */
+.unlock{text-align:center;padding:44px 28px}
+.unlock .big{width:96px;height:96px;margin:0 auto 14px;border-radius:50%;background:var(--amber-soft);color:#A66A0E;display:flex;align-items:center;justify-content:center}
+.unlock h2{font-size:36px;margin-bottom:8px}
+.unlock p{max-width:52ch;margin:0 auto 22px}
+
+/* end */
+.score-ring{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin:18px 0 22px}
+.score-num{font-family:'Fraunces',serif;font-weight:800;font-size:76px;line-height:1;color:var(--teal-dark)}
+.score-num small{font-size:32px;color:var(--muted)}
+.room-scores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:22px}
+.rs{background:var(--cream);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.rs b{display:block;font-family:'Fraunces',serif;font-size:20px}
+.send{border-radius:14px;padding:14px 16px;font-size:15.5px;margin-bottom:16px}
+.send.wait{background:var(--amber-soft)}
+.send.ok{background:var(--teal-soft)}
+.send.no{background:var(--coral-soft)}
+.review{margin-top:24px}
+.review h3{font-size:22px;margin-bottom:10px}
+.review ol{margin:0;padding-left:22px}
+.review li{margin-bottom:10px;font-size:15.5px}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.tag.ok{background:var(--teal-soft);color:var(--teal-dark)}
+.tag.no{background:var(--coral-soft);color:#9C3B29}
+footer{margin-top:36px;text-align:center;font-size:13.5px;color:var(--muted)}
+
+@media (max-width:700px){
+  .rules,.files,.room-scores{grid-template-columns:minmax(0,1fr)}
+  form .row{grid-template-columns:minmax(0,1fr)}
+  .card{padding:20px}
+  .question{font-size:20px}
+  .room-head h2{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="course">KSG3613 Introduction to Ethics · Chapter 4 · <a href="index.html#ch4_escape" style="color:inherit">Back to the book</a></span>
+    <span class="keys hidden" id="keyCount" aria-live="polite">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M17 6l3 3M14 9l2 2"/></svg>
+      <span id="keyText">0 keys</span>
+    </span>
+  </div>
+
+  <!-- ============ INTRO ============ -->
+  <section id="screenIntro" class="card hero">
+    <span class="eyebrow">Escape room assessment · Confidentiality</span>
+    <h1>The Locked Case Files</h1>
+    <p>It is your first week as a counsellor at a university counselling centre. Overnight, the director has locked six case files. Each one holds a confidentiality dilemma, and you cannot leave the office until you have worked through all six.</p>
+    <p>Each correct answer earns you a key, and your keys make up your score.</p>
+    <div class="rules">
+      <div class="rule"><b>6 files</b>Each one opens only after the one before it.</div>
+      <div class="rule"><b>17 questions</b>One try each. You see the right answer straight after.</div>
+      <div class="rule"><b>About 15 min</b>At the end, click Submit to email your result to your lecturer.</div>
+    </div>
+    <form id="startForm" novalidate>
+      <div class="row">
+        <div>
+          <label for="studentName">Full name</label>
+          <input type="text" id="studentName" autocomplete="name" required>
+        </div>
+        <div>
+          <label for="matric">Matric number</label>
+          <input type="text" id="matric" autocomplete="off" required>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label for="group">Class group (optional)</label>
+        <input type="text" id="group" autocomplete="off">
+      </div>
+      <div class="error" id="startError" role="alert"></div>
+      <div style="margin-top:8px"><button class="btn" type="submit">Enter the office
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+    </form>
+  </section>
+
+  <!-- ============ MAP ============ -->
+  <section id="screenMap" class="hidden">
+    <div class="map-head">
+      <div>
+        <span class="eyebrow">The director's cabinet</span>
+        <h2>Choose your next case file</h2>
+      </div>
+      <span id="mapProgress" style="font-weight:600;color:var(--muted)"></span>
+    </div>
+    <div class="files" id="files"></div>
+  </section>
+
+  <!-- ============ ROOM ============ -->
+  <section id="screenRoom" class="card hidden">
+    <div class="room-head">
+      <div class="room-icon" id="roomIcon" aria-hidden="true"></div>
+      <div>
+        <span class="eyebrow" id="roomEyebrow"></span>
+        <h2 id="roomTitle"></h2>
+      </div>
+    </div>
+    <div class="scene" id="roomScene"></div>
+    <div class="progress" id="roomProgress" aria-hidden="true"></div>
+    <div class="qnum" id="qNum"></div>
+    <p class="question" id="qText"></p>
+    <div class="options" id="qOptions"></div>
+    <div id="qFeedback" aria-live="polite"></div>
+    <div class="actions"><button class="btn hidden" id="nextBtn" type="button">Next</button></div>
+  </section>
+
+  <!-- ============ UNLOCK ============ -->
+  <section id="screenUnlock" class="card unlock hidden">
+    <div class="big" aria-hidden="true">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.8"/></svg>
+    </div>
+    <span class="eyebrow" id="unlockEyebrow"></span>
+    <h2 id="unlockTitle"></h2>
+    <p id="unlockText"></p>
+    <button class="btn" id="unlockBtn" type="button">Back to the cabinet</button>
+  </section>
+
+  <!-- ============ END ============ -->
+  <section id="screenEnd" class="card hidden">
+    <span class="eyebrow">You escaped</span>
+    <h2 style="font-size:40px;margin-top:6px">The office door is open</h2>
+    <div class="score-ring">
+      <div class="score-num" id="endScore"></div>
+      <div id="endMessage" style="max-width:46ch"></div>
+    </div>
+    <div class="room-scores" id="endRooms"></div>
+    <div class="send wait" id="sendStatus" role="status"></div>
+    <button class="btn hidden" id="retrySend" type="button">Submit</button>
+    <div id="copyWrap" class="hidden" style="margin-top:12px"><p style="margin:0 0 6px;font-size:15px"></p><textarea id="copyBox" readonly rows="8" style="width:100%;font:inherit;font-size:14px;padding:10px;border:1.5px solid var(--line);border-radius:12px"></textarea></div>
+    <div class="review">
+      <h3>Review your answers</h3>
+      <ol id="reviewList"></ol>
+    </div>
+  </section>
+
+  <footer>Based on Welfel (2016), Chapter 5. Department of Psychology, Faculty of Human Development, UPSI.</footer>
+</div>
+
+<script>
+/* ============================================================
+   SETTINGS
+   Paste the web app URL from Google Apps Script between the quotes.
+   ============================================================ */
+const SCRIPT_URL = "";
+const GAME_ID = "KSG3613 Ch4 Confidentiality Escape Room";
+const NOTIFY_EMAIL = "gpriyalatha@fpm.upsi.edu.my";
+
+/* ============================================================
+   CONTENT: six case files, 17 questions.
+   "answer" is the index (0 to 3) of the correct option as written.
+   Options are shuffled on screen.
+   ============================================================ */
+const ROOMS = [
+  {
+    id: "R1", name: "The Waiting Room", topic: "What confidentiality covers", icon: "door",
+    scene: "The receptionist is on hold with a caller. A client's name is on the screen. Before you can read your first file, you need to know what counts as private here.",
+    unlock: "You now know that confidentiality covers almost everything, including whether someone is a client at all, and that it lasts even after a client dies.",
+    questions: [
+      { q: "A man phones the centre: “Is my neighbour Aina seeing one of your counsellors? I'm worried about her.” What do you say?",
+        o: ["Neither confirm nor deny that Aina is a client, and offer general information about the centre",
+            "Confirm she is a client, but share nothing about her sessions",
+            "Confirm she is a client only if he can prove he is a relative",
+            "Take his message and tell him her next appointment time"],
+        answer: 0,
+        why: "This is contact confidentiality. Even the fact that someone is your client is private, so you cannot confirm or deny it." },
+      { q: "Confidentiality rests mainly on two ethical principles. Which two?",
+        o: ["Autonomy and fidelity", "Justice and beneficence", "Beneficence and nonmaleficence", "Justice and fidelity"],
+        answer: 0,
+        why: "Autonomy means each person decides who knows their private information. Fidelity means you keep your promise, open or implied, to keep it private. Beneficence and nonmaleficence support these." },
+      { q: "A well known client of the centre has died. A journalist asks what she talked about in counselling. What is correct?",
+        o: ["Confidentiality continues after death, so you say nothing",
+            "You may speak freely, because the duty ends when the client dies",
+            "You may share anything that has already been in the news",
+            "You may share general themes as long as you do not quote her"],
+        answer: 0,
+        why: "The duty continues after death. A therapist who spoke to the press about a murdered client's sessions was disciplined by her licensing board." }
+    ]
+  },
+  {
+    id: "R2", name: "The Staff Room", topic: "Colleagues, trainees and home", icon: "cup",
+    scene: "Your colleagues are on their lunch break. Some are consulting about cases, and some are just chatting. You need to tell professional consultation apart from gossip.",
+    unlock: "You can now tell real consultation from idle talk, and you know that home is where many breaches happen.",
+    questions: [
+      { q: "You want a colleague's advice on a difficult case. What is the best way to do it?",
+        o: ["Consult, leaving out identifying details where you can",
+            "Give the client's full name so the advice is accurate",
+            "Wait until the client has finished counselling",
+            "Never discuss any case with anyone"],
+        answer: 0,
+        why: "The codes allow consultation, but you leave out identifying details where possible. If a team discusses cases by name, clients should know and agree." },
+      { q: "In the staff kitchen, a colleague tells a funny story about a client. Which test helps you judge whether this is acceptable?",
+        o: ["If the client overheard this, would they see it as a professional consultation?",
+            "Did the colleague leave out the client's surname?",
+            "Is anyone from outside the profession listening?",
+            "Is the story useful for teaching new staff?"],
+        answer: 0,
+        why: "If the client would not see the conversation as professional consultation, it should not happen. Leaving out a surname is not enough." },
+      { q: "You have had a hard day and want to talk to your spouse. Which comment is acceptable?",
+        o: ["“I'm saddened by a client's serious illness, which adds to an already hard situation.”",
+            "“My client is a 34 year old nurse with two children, and her ex husband is a lawyer.”",
+            "“I can tell you everything, because spouses have to keep secrets too.”",
+            "“I'll tell you the details if you promise not to repeat them.”"],
+        answer: 0,
+        why: "Broad outlines are fine. Details such as age, job and family situation can identify the client together, and family members have no duty to keep client information private." }
+    ]
+  },
+  {
+    id: "R3", name: "The Courtroom", topic: "Privilege and subpoenas", icon: "scale",
+    scene: "An envelope from a law firm is on your desk. Inside is a subpoena asking for a client's records. Before you act, you need to know who holds the legal protections.",
+    unlock: "You now know the difference between confidentiality and privilege, who holds the privilege, and that a subpoena starts the process but does not end it.",
+    questions: [
+      { q: "What is the main difference between confidentiality and privileged communication?",
+        o: ["Confidentiality stops you choosing to disclose; privilege lets the client stop a court forcing disclosure",
+            "Confidentiality comes from law; privilege comes from the ethics codes",
+            "They mean the same thing in different countries",
+            "Privilege protects the therapist; confidentiality protects the client"],
+        answer: 0,
+        why: "Confidentiality is your ethical and legal duty not to reveal client information. Privilege is a legal right, from state or federal law, that protects against forced disclosure in court." },
+      { q: "Who holds the privilege?",
+        o: ["The client", "The therapist", "The judge", "The licensing board"],
+        answer: 0,
+        why: "The privilege belongs to the client. You assert it on the client's behalf, and you cannot waive it yourself." },
+      { q: "You receive a subpoena for a client's records. What should you do?",
+        o: ["With your own lawyer, assert privilege for the client and ask a judge to rule",
+            "Ignore it, because it is not a court order",
+            "Post the records to the lawyer straight away",
+            "Destroy the records to protect the client"],
+        answer: 0,
+        why: "Never ignore a subpoena, and never just hand over records. A clerk can issue a subpoena at a lawyer's request. Usually only a court order, from a judge who has reviewed the case, requires disclosure." }
+    ]
+  },
+  {
+    id: "R4", name: "The Crisis Room", topic: "Abuse, danger and risk", icon: "alert",
+    scene: "The phone keeps ringing in the crisis room. These are the files where confidentiality has limits. You need to know when the law, or a client's safety, comes first.",
+    unlock: "You now know that reasonable suspicion of abuse is enough to report, that the duty is to protect and not only to warn, and how to tell angry words from real intent.",
+    questions: [
+      { q: "A 9 year old client describes injuries that suggest abuse at home. You have no proof. What do you do?",
+        o: ["Report it, usually within 24 hours. Reasonable suspicion is enough",
+            "Wait until you have proof, so you do not damage the family",
+            "Ask the parents for their side before you decide",
+            "Keep it confidential to protect the therapy relationship"],
+        answer: 0,
+        why: "Reporting laws override confidentiality and privilege. You need a reasonable suspicion, not proof, and you share only what relates to the abuse. Not reporting can bring criminal penalties." },
+      { q: "A client says he plans to hurt his former partner and has bought a knife. After Tarasoff, what best describes your duty?",
+        o: ["Protect her, for example by informing the police, helping her get protection or hospitalising him, and share only what relates to the threat",
+            "Phone her with a quick warning and end the call",
+            "Do nothing, because the privilege belongs to the client",
+            "Tell his family, employer and friends so that everyone is aware"],
+        answer: 0,
+        why: "The duty is to protect, not only to warn. A warning call that simply hangs up achieves little. You disclose only what relates to the threat, and laws differ between states." },
+      { q: "Which sign most suggests real intent to be violent, rather than angry words?",
+        o: ["He has bought a gun and chosen a date",
+            "He swears loudly about his manager",
+            "He says “I could kill her” while talking about the divorce",
+            "He is very upset and cries in the session"],
+        answer: 0,
+        why: "Borum and Reddy list crossing a threshold, such as buying a weapon, and intent rather than just thoughts. Angry words are common; real intent is rare." }
+    ]
+  },
+  {
+    id: "R5", name: "The Family Room", topic: "Children, groups, culture and technology", icon: "people",
+    scene: "This room holds the trickiest files: parents asking questions, a group that wants promises, and a client's social media profile left open on a laptop.",
+    unlock: "You now know that confidentiality grows with maturity, that you cannot guarantee group members' silence, and how to handle clients' social media.",
+    questions: [
+      { q: "The parents of your 16 year old client want to know everything their son says in sessions. What is the best approach?",
+        o: ["Meet them early to explain why privacy matters, while recognising their legal rights",
+            "Tell them everything, because he is under 18",
+            "Refuse to speak to the parents at all",
+            "End counselling, because the situation is too complicated"],
+        answer: 0,
+        why: "Parents usually have a legal right to information, but confidentiality grows with maturity, and clients of 15 and over usually decide as well as adults. Most parents respect privacy once they understand it." },
+      { q: "In group counselling, a member asks: “Can you promise nobody here will repeat what I say?” What is honest?",
+        o: ["You keep it confidential and ask everyone to agree, but you cannot guarantee that other members will",
+            "Yes, the law protects everything said in a group",
+            "Yes, as long as everyone signs a form",
+            "No, so the group should not share anything personal"],
+        answer: 0,
+        why: "Your own duty does not change, but you cannot control other members. Under the third party rule, what is said in front of others is usually not privileged in court." },
+      { q: "You are curious about a client's Instagram account. What should you do?",
+        o: ["Only look with the client's prior consent, and discuss anything you see by chance in the next session",
+            "Look, as long as the account is public",
+            "Follow the client from your personal account",
+            "Look, but never mention it to the client"],
+        answer: 0,
+        why: "The 2014 ACA Code says to keep professional and personal pages separate and to view a client's social media only with permission." }
+    ]
+  },
+  {
+    id: "R6", name: "The Final File: Arif", topic: "Risk to a third party", icon: "folder",
+    scene: "<b>Arif, 19,</b> is a first year student who shares a room in a hall of residence. Last week he was diagnosed with tuberculosis, which spreads through the air. He has started treatment, but he has not told his roommate and asks you to keep it secret because he is ashamed. He says he wears a mask in the room. The semester break starts in a week.",
+    unlock: "",
+    questions: [
+      { q: "Under the ACA Code, what does it say about disclosing a client's contagious, life threatening disease to someone at risk?",
+        o: ["It permits, but does not require, disclosure to an identifiable person at serious and foreseeable risk",
+            "It requires disclosure as soon as you know",
+            "It forbids disclosure in all cases",
+            "It requires disclosure only if the client is under 18"],
+        answer: 0,
+        why: "Disclosure is permitted, not required, and only when an identifiable person is at serious and foreseeable risk. You should first assess whether the client intends to tell that person, and check your own bias." },
+      { q: "What is the most ethically sound step with Arif right now?",
+        o: ["Explore his shame, support him to keep up treatment and precautions, and invite him to tell his roommate himself, perhaps with your support",
+            "Tell the roommate today, without discussing it with Arif",
+            "Keep his secret and say nothing more about it",
+            "End counselling and refer him elsewhere"],
+        answer: 0,
+        why: "Arif is on treatment and taking precautions, so the risk is being managed. Telling the roommate now would likely end counselling, while silence leaves the risk unresolved. If he stops treatment or keeps refusing and the risk grows, disclosure may become justified." }
+    ]
+  }
+];
+
+/* ============================================================
+   ICONS (inline, stroke)
+   ============================================================ */
+const ICON = {
+  door:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><circle cx="15" cy="12" r="1"/></svg>',
+  cup:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9zM17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/></svg>',
+  scale:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a4 4 0 0 0 6 0L5 7zM19 7l-3 7a4 4 0 0 0 6 0l-3-7z"/></svg>',
+  alert:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>',
+  people:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg>',
+  folder:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>',
+  lock:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  open:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
+};
+
+/* ============================================================
+   STATE (memory only: a clean start on every visit)
+   ============================================================ */
+const state = {
+  student: null, startedAt: null,
+  roomIndex: 0,         // next room to open
+  current: null,        // room being played
+  qIndex: 0,
+  results: [],          // {room, qid, question, chosen, correctText, correct}
+  shuffled: null, sent: false
+};
+const TOTAL = ROOMS.reduce((n, r) => n + r.questions.length, 0);
+const LETTERS = ["A", "B", "C", "D"];
+const $ = (id) => document.getElementById(id);
+
+function show(id) {
+  ["screenIntro", "screenMap", "screenRoom", "screenUnlock", "screenEnd"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function keys() { return state.results.filter(r => r.correct).length; }
+function updateKeys() {
+  const k = keys();
+  $("keyText").textContent = k + (k === 1 ? " key" : " keys") + " of " + TOTAL;
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+/* ---------- intro ---------- */
+$("startForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("studentName").value.trim();
+  const matric = $("matric").value.trim();
+  if (!name || !matric) { $("startError").textContent = "Please enter your full name and matric number."; return; }
+  state.student = { name, matric, group: $("group").value.trim() };
+  state.startedAt = new Date();
+  $("keyCount").classList.remove("hidden");
+  updateKeys();
+  renderMap();
+  show("screenMap");
+});
+
+/* ---------- map ---------- */
+function renderMap() {
+  const box = $("files");
+  box.innerHTML = "";
+  ROOMS.forEach((r, i) => {
+    const done = i < state.roomIndex, open = i === state.roomIndex;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "file " + (done ? "done" : open ? "open" : "locked");
+    b.disabled = !open;
+    const got = state.results.filter(x => x.room === r.id && x.correct).length;
+    b.innerHTML =
+      (done ? '<span class="stamp">SOLVED</span>' : "") +
+      '<span class="num">FILE ' + (i + 1) + '</span>' +
+      '<span class="name">' + esc(r.name) + '</span>' +
+      '<span class="topic">' + esc(r.topic) + '</span>' +
+      '<span class="state">' + (done ? ICON.check + got + " of " + r.questions.length + " keys" : open ? ICON.open + "Open this file" : ICON.lock + "Locked") + '</span>';
+    b.setAttribute("aria-label", "File " + (i + 1) + ": " + r.name + ". " + (done ? "Solved" : open ? "Open" : "Locked"));
+    if (open) b.addEventListener("click", () => startRoom(i));
+    box.appendChild(b);
+  });
+  $("mapProgress").textContent = state.roomIndex + " of " + ROOMS.length + " files solved";
+}
+
+/* ---------- room ---------- */
+function startRoom(i) {
+  state.current = ROOMS[i];
+  state.qIndex = 0;
+  const r = state.current;
+  $("roomIcon").innerHTML = ICON[r.icon];
+  $("roomEyebrow").textContent = "File " + (i + 1) + " of " + ROOMS.length + " · " + r.topic;
+  $("roomTitle").textContent = r.name;
+  $("roomScene").innerHTML = r.scene;
+  renderQuestion();
+  show("screenRoom");
+}
+function renderProgress() {
+  const r = state.current, p = $("roomProgress");
+  p.innerHTML = "";
+  r.questions.forEach((q, i) => {
+    const s = document.createElement("span");
+    const res = state.results.find(x => x.qid === r.id + "Q" + (i + 1));
+    s.className = res ? (res.correct ? "ok" : "no") : (i === state.qIndex ? "now" : "");
+    p.appendChild(s);
+  });
+}
+function renderQuestion() {
+  const r = state.current, q = r.questions[state.qIndex];
+  renderProgress();
+  $("qNum").textContent = "Question " + (state.qIndex + 1) + " of " + r.questions.length;
+  $("qText").textContent = q.q;
+  $("qFeedback").innerHTML = "";
+  $("nextBtn").classList.add("hidden");
+  state.shuffled = shuffle(q.o.map((text, idx) => ({ text, idx })));
+  const box = $("qOptions");
+  box.innerHTML = "";
+  state.shuffled.forEach((opt, k) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt";
+    b.innerHTML = '<span class="letter">' + LETTERS[k] + '</span><span>' + esc(opt.text) + '</span>';
+    b.addEventListener("click", () => choose(k));
+    box.appendChild(b);
+  });
+}
+function choose(k) {
+  const r = state.current, q = r.questions[state.qIndex];
+  const picked = state.shuffled[k];
+  const correct = picked.idx === q.answer;
+  state.results.push({
+    room: r.id, qid: r.id + "Q" + (state.qIndex + 1), question: q.q,
+    chosen: picked.text, correctText: q.o[q.answer], correct
+  });
+  [...$("qOptions").children].forEach((b, i) => {
+    b.disabled = true;
+    const isAns = state.shuffled[i].idx === q.answer;
+    if (isAns) b.classList.add("right");
+    else if (i === k) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  $("qFeedback").innerHTML =
+    '<div class="feedback ' + (correct ? "ok" : "no") + '"><h3>' +
+    (correct ? "Key earned" : "Not quite. No key this time") + '</h3>' + esc(q.why) + '</div>';
+  updateKeys();
+  renderProgress();
+  const last = state.qIndex === r.questions.length - 1;
+  $("nextBtn").textContent = last ? "Unlock the next file" : "Next question";
+  $("nextBtn").classList.remove("hidden");
+  $("nextBtn").focus();
+}
+$("nextBtn").addEventListener("click", () => {
+  const r = state.current;
+  if (state.qIndex < r.questions.length - 1) { state.qIndex++; renderQuestion(); return; }
+  state.roomIndex++;
+  if (state.roomIndex >= ROOMS.length) { finish(); return; }
+  const got = state.results.filter(x => x.room === r.id && x.correct).length;
+  $("unlockEyebrow").textContent = r.name + " solved · " + got + " of " + r.questions.length + " keys";
+  $("unlockTitle").textContent = "File " + (state.roomIndex + 1) + " is unlocked";
+  $("unlockText").textContent = r.unlock;
+  show("screenUnlock");
+  $("unlockBtn").focus();
+});
+$("unlockBtn").addEventListener("click", () => { renderMap(); show("screenMap"); });
+
+/* ---------- end ---------- */
+function finish() {
+  const score = keys(), pct = Math.round(score / TOTAL * 100);
+  const mins = Math.max(1, Math.round((Date.now() - state.startedAt.getTime()) / 60000));
+  $("endScore").innerHTML = score + "<small> / " + TOTAL + "</small>";
+  $("endMessage").innerHTML = "<b>" + pct + "%</b>, in about " + mins + " minute" + (mins === 1 ? "" : "s") + ". " +
+    (pct >= 80 ? "Excellent. You handle confidentiality dilemmas with care and confidence." :
+     pct >= 60 ? "Good work. Look back at the questions you missed below." :
+     "You escaped, but some files need another look. Review the answers below and revisit the chapter slides.");
+  const rs = $("endRooms");
+  rs.innerHTML = "";
+  ROOMS.forEach(r => {
+    const got = state.results.filter(x => x.room === r.id && x.correct).length;
+    const d = document.createElement("div");
+    d.className = "rs";
+    d.innerHTML = "<b>" + got + " / " + r.questions.length + "</b>" + esc(r.name);
+    rs.appendChild(d);
+  });
+  const list = $("reviewList");
+  list.innerHTML = "";
+  state.results.forEach(x => {
+    const li = document.createElement("li");
+    li.innerHTML = esc(x.question) + '<span class="tag ' + (x.correct ? "ok" : "no") + '">' + (x.correct ? "CORRECT" : "MISSED") + "</span>" +
+      (x.correct ? "" : '<br><span style="color:var(--muted)">Your answer: ' + esc(x.chosen) + '</span><br><span style="color:var(--teal-dark)">Correct: ' + esc(x.correctText) + "</span>");
+    list.appendChild(li);
+  });
+  show("screenEnd");
+  sendResult(score, pct, mins);
+}
+
+function buildPayload(score, pct, mins) {
+  return {
+    game: GAME_ID,
+    submittedAt: new Date().toISOString(),
+    name: state.student.name, matric: state.student.matric, group: state.student.group,
+    score, total: TOTAL, percent: pct, minutes: mins,
+    rooms: ROOMS.map(r => ({ room: r.name, score: state.results.filter(x => x.room === r.id && x.correct).length, total: r.questions.length })),
+    answers: state.results.map(x => ({ id: x.qid, correct: x.correct, chosen: x.chosen }))
+  };
+}
+function plainText(p) {
+  return "KSG3613 Chapter 4 Escape Room\nName: " + p.name + "\nMatric number: " + p.matric + (p.group ? "\nGroup: " + p.group : "") +
+    "\nScore: " + p.score + " / " + p.total + " (" + p.percent + "%), about " + p.minutes + " minutes\n" +
+    p.rooms.map(r => r.room + ": " + r.score + " / " + r.total).join("\n");
+}
+async function sendEmail(p) {
+  const fields = {
+    _subject: "KSG3613 Ch4 Escape Room: " + p.name + " (" + p.matric + ") " + p.score + "/" + p.total,
+    _template: "table", _captcha: "false",
+    "Name": p.name, "Matric number": p.matric, "Group": p.group || "",
+    "Score": p.score + " / " + p.total + " (" + p.percent + "%)", "Minutes": p.minutes,
+    "Submitted": new Date(p.submittedAt).toLocaleString("en-GB", { timeZone: "Asia/Kuala_Lumpur" })
+  };
+  p.rooms.forEach(r => { fields[r.room] = r.score + " / " + r.total; });
+  p.answers.forEach(a => { fields[a.id] = a.correct ? "Correct" : "Missed"; });
+  const r = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(NOTIFY_EMAIL), {
+    method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(fields)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || String(j.success) !== "true") throw new Error(j.message || "not sent");
+}
+function sendResult(score, pct, mins) {
+  const status = $("sendStatus"), btn = $("retrySend");
+  status.className = "send no";
+  status.innerHTML = "<b>Submit your result by email.</b> Click Submit below to send your score to your lecturer at " + NOTIFY_EMAIL + ".";
+  btn.textContent = "Submit";
+  btn.classList.remove("hidden");
+  btn.onclick = async () => {
+    if (state.sent) return;
+    const p = buildPayload(score, pct, mins);
+    btn.disabled = true;
+    status.className = "send wait";
+    status.textContent = "Sending your result to your lecturer…";
+    try {
+      if (SCRIPT_URL) {
+        await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(p) });
+      } else {
+        await sendEmail(p);
+      }
+      state.sent = true;
+      status.className = "send ok";
+      status.innerHTML = "<b>Submitted.</b> Your result has been emailed to your lecturer. You can close this page.";
+      btn.classList.add("hidden");
+      $("copyWrap").classList.add("hidden");
+    } catch (e) {
+      status.className = "send no";
+      status.innerHTML = "<b>Your result could not be sent.</b> Check your internet connection and click Submit again.";
+      btn.textContent = "Submit again";
+      $("copyBox").value = plainText(p);
+      $("copyWrap").querySelector("p").textContent = "If it still does not send, copy everything below and email it to " + NOTIFY_EMAIL + ".";
+      $("copyWrap").classList.remove("hidden");
+    } finally { btn.disabled = false; }
+  };
+}
+</script>
+</body>
+</html>

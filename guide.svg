@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Illustrated guide: Dr. Priyalatha Govindasamy">
+  <defs>
+    <clipPath id="c"><circle cx="120" cy="120" r="118"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="240" height="240" fill="#DCEDEA"/>
+    <circle cx="190" cy="52" r="34" fill="#F5E7C6"/>
+    <circle cx="44" cy="190" r="26" fill="#F7DED7"/>
+    <!-- hair back -->
+    <path d="M62 128 C54 70 84 34 122 34 C162 34 188 66 182 126 C180 150 170 168 160 178 L84 178 C72 166 64 150 62 128 Z" fill="#2B1D1A"/>
+    <!-- shoulders / blouse -->
+    <path d="M30 240 C32 196 66 176 120 176 C174 176 208 196 210 240 Z" fill="#2A7F78"/>
+    <path d="M98 178 L120 206 L142 178 Z" fill="#B8826A"/>
+    <path d="M30 240 C34 208 54 190 82 182 L92 240 Z" fill="#1C5652" opacity=".55"/>
+    <path d="M210 240 C206 208 186 190 158 182 L148 240 Z" fill="#1C5652" opacity=".55"/>
+    <!-- dupatta drape -->
+    <path d="M150 178 C176 186 196 204 204 240 L176 240 C172 214 162 196 146 184 Z" fill="#C98A1E"/>
+    <!-- neck -->
+    <path d="M104 150 L104 182 Q120 192 136 182 L136 150 Z" fill="#B8826A"/>
+    <!-- face -->
+    <ellipse cx="120" cy="112" rx="40" ry="46" fill="#C99378"/>
+    <!-- ears + earrings -->
+    <ellipse cx="80" cy="116" rx="7" ry="11" fill="#C08A70"/>
+    <ellipse cx="160" cy="116" rx="7" ry="11" fill="#C08A70"/>
+    <circle cx="80" cy="131" r="3.5" fill="#C98A1E"/>
+    <circle cx="160" cy="131" r="3.5" fill="#C98A1E"/>
+    <!-- hair front with side parting -->
+    <path d="M78 104 C78 70 98 56 124 58 C148 60 164 76 163 104 C152 86 138 76 122 74 C108 80 92 90 78 104 Z" fill="#2B1D1A"/>
+    <!-- brows -->
+    <path d="M97 101 Q106 96 114 100" stroke="#2B1D1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M126 100 Q134 96 143 101" stroke="#2B1D1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- eyes -->
+    <circle cx="105" cy="115" r="4" fill="#1E2A2C"/>
+    <circle cx="135" cy="115" r="4" fill="#1E2A2C"/>
+    <!-- nose + smile -->
+    <path d="M120 120 Q117 130 121 133" stroke="#A8735C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M106 141 Q120 152 134 141" stroke="#8A3E33" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- cheeks -->
+    <ellipse cx="97" cy="134" rx="7" ry="4" fill="#D9604A" opacity=".18"/>
+    <ellipse cx="143" cy="134" rx="7" ry="4" fill="#D9604A" opacity=".18"/>
+  </g>
+  <circle cx="120" cy="120" r="118" fill="none" stroke="#1C5652" stroke-width="4"/>
+</svg>

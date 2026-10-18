@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Within Your Scope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a drafting board. The practitioner is built on the left, one question at a time on the right. */
+:root{
+  --paper:#F7F3EA; --card:#FFFFFF; --ink:#1E2A2C; --muted:#5E6B6C; --line:#E2DACB;
+  --teal:#2A7F78; --teal-soft:#DCEDEA; --coral:#C9543E; --coral-soft:#F7DED7;
+  --amber:#B97D14; --amber-soft:#F5E7C6; --violet:#62538C; --violet-soft:#E5E0F0;
+  --skin:#E8B98F; --cloth:#2A7F78; --trousers:#3B4A4C;
+  --display:"Fraunces", Cambria, Georgia, serif;
+  --body:"Spline Sans", "Segoe UI", Calibri, Arial, sans-serif;
+  --mono:"Spline Sans Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#131A1B; --card:#1C2526; --ink:#ECE6DA; --muted:#A3AFAE; --line:#2E3A3B;
+  --teal:#62B6AC; --teal-soft:#1D3A37; --coral:#EE8C77; --coral-soft:#3D2520;
+  --amber:#E0AE52; --amber-soft:#3A2F1C; --violet:#A99BD6; --violet-soft:#2A2540;
+  --skin:#D7A47A; --cloth:#3E9C93; --trousers:#56676A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#131A1B; --card:#1C2526; --ink:#ECE6DA; --muted:#A3AFAE; --line:#2E3A3B;
+  --teal:#62B6AC; --teal-soft:#1D3A37; --coral:#EE8C77; --coral-soft:#3D2520;
+  --amber:#E0AE52; --amber-soft:#3A2F1C; --violet:#A99BD6; --violet-soft:#2A2540;
+  --skin:#D7A47A; --cloth:#3E9C93; --trousers:#56676A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light}
+body{margin:0}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.12}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.course{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.brand{font-size:clamp(30px,6vw,46px);font-weight:900;letter-spacing:-.02em}
+.brand em{font-style:italic;font-weight:500;color:var(--teal)}
+.lede{margin:6px 0 0;color:var(--muted);max-width:62ch}
+
+.board{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.board{grid-template-columns:1fr}}
+
+.easel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:760px){.easel{position:static}}
+.easel svg{display:block;width:100%;max-width:300px;margin:0 auto;height:auto}
+.ghost path,.ghost circle,.ghost rect,.ghost ellipse{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:5 5}
+.part{opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity .35s ease, transform .45s cubic-bezier(.3,1.5,.5,1)}
+.part.on{opacity:1}
+.part.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+.part.fall{animation:fall .6s ease-in forwards}
+@keyframes pop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(60px) rotate(25deg)}}
+.prog{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px}
+.prog b{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.prog span{font-size:13px;color:var(--muted)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--teal);transition:width .4s ease}
+.parts{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12.5px;color:var(--muted)}
+.parts li::before{content:"○ ";}
+.parts li.got{color:var(--ink)}
+.parts li.got::before{content:"● ";color:var(--teal)}
+.stats{display:flex;gap:14px;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+
+.q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px clamp(16px,4vw,28px) 24px;min-width:0}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-weight:500}
+.q h2{font-size:clamp(21px,3.4vw,27px);margin:10px 0 10px}
+.q p{margin:0 0 12px;max-width:62ch}
+.choices{display:grid;gap:10px;margin-top:6px}
+.ch{text-align:left;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.4;transition:transform .12s,border-color .12s}
+.ch:hover:not(:disabled){border-color:var(--ink);transform:translateY(-1px)}
+.ch:disabled{cursor:default}
+.ch.best{border-color:var(--teal);background:var(--teal-soft)}
+.ch.part2{border-color:var(--amber);background:var(--amber-soft)}
+.ch.bad{border-color:var(--coral);background:var(--coral-soft)}
+.fb{margin-top:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--paper)}
+.fb b{font-family:var(--display);font-size:17px;display:block;margin-bottom:2px}
+.fb.good{border-color:var(--teal)} .fb.mid{border-color:var(--amber)} .fb.lost{border-color:var(--coral)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.note{font-size:13px;color:var(--muted)}
+.go{padding:11px 20px;border-radius:999px;border:0;background:var(--ink);color:var(--paper);font-weight:600}
+.alt{padding:10px 18px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-weight:600}
+.rules{display:grid;gap:10px;margin:8px 0 4px;padding:0;list-style:none}
+.rules li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.rules .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:14px;color:var(--card)}
+.review{margin:8px 0 0;padding-left:18px}
+.review li{margin-bottom:6px}
+.foot{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <p style="margin:0 0 8px"><a href="index.html#ch3_game" style="color:var(--teal);font-size:14px">Back to Chapter 3</a></p>
+    <div class="course">KSG3613 Introduction to Ethics · Chapter 3</div>
+    <h1 class="brand">Within your <em>scope</em></h1>
+    <p class="lede">Build a fully competent practitioner. Every correct answer adds a piece. Every wrong answer takes one away.</p>
+  </header>
+
+  <div class="board">
+    <aside class="easel" aria-label="Your practitioner">
+      <svg viewBox="0 0 300 380" role="img" aria-labelledby="figTitle">
+        <title id="figTitle">A practitioner being built piece by piece</title>
+        <g class="ghost">
+          <ellipse cx="150" cy="362" rx="90" ry="8"/>
+          <circle cx="150" cy="78" r="38"/>
+          <path d="M108 128 Q150 112 192 128 L200 240 L100 240 Z"/>
+          <path d="M108 132 L70 220"/><path d="M192 132 L230 220"/>
+          <path d="M122 240 L118 350"/><path d="M178 240 L182 350"/>
+        </g>
+        <!-- 1 Head -->
+        <g class="part" data-p="0"><circle cx="150" cy="78" r="38" fill="var(--skin)"/><path d="M112 72 Q118 34 150 36 Q186 36 189 72 Q172 52 150 54 Q128 52 112 72Z" fill="var(--trousers)"/></g>
+        <!-- 2 Body -->
+        <g class="part" data-p="1"><path d="M108 128 Q150 112 192 128 L200 240 L100 240 Z" fill="var(--cloth)"/><path d="M138 120 L150 146 L162 120" fill="none" stroke="var(--card)" stroke-width="5" stroke-linejoin="round"/></g>
+        <!-- 3 Left arm -->
+        <g class="part" data-p="2"><path d="M110 134 L74 214" stroke="var(--cloth)" stroke-width="22" stroke-linecap="round"/><circle cx="72" cy="220" r="11" fill="var(--skin)"/></g>
+        <!-- 4 Right arm -->
+        <g class="part" data-p="3"><path d="M190 134 L226 214" stroke="var(--cloth)" stroke-width="22" stroke-linecap="round"/><circle cx="228" cy="220" r="11" fill="var(--skin)"/></g>
+        <!-- 5 Left leg -->
+        <g class="part" data-p="4"><path d="M124 236 L120 340" stroke="var(--trousers)" stroke-width="26" stroke-linecap="round"/><ellipse cx="112" cy="352" rx="20" ry="9" fill="var(--ink)"/></g>
+        <!-- 6 Right leg -->
+        <g class="part" data-p="5"><path d="M176 236 L180 340" stroke="var(--trousers)" stroke-width="26" stroke-linecap="round"/><ellipse cx="188" cy="352" rx="20" ry="9" fill="var(--ink)"/></g>
+        <!-- 7 Eyes -->
+        <g class="part" data-p="6"><circle cx="136" cy="80" r="4.5" fill="var(--ink)"/><circle cx="164" cy="80" r="4.5" fill="var(--ink)"/></g>
+        <!-- 8 Smile -->
+        <g class="part" data-p="7"><path d="M134 96 Q150 110 166 96" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g>
+        <!-- 9 Heart -->
+        <g class="part" data-p="8"><path d="M170 158 c-6 -10 -20 -6 -18 6 c2 9 18 18 18 18 s16 -9 18 -18 c2 -12 -12 -16 -18 -6z" fill="var(--coral)"/></g>
+        <!-- 10 Book -->
+        <g class="part" data-p="9"><rect x="44" y="200" width="34" height="42" rx="3" fill="var(--violet)" transform="rotate(-12 61 221)"/><path d="M52 206 L52 236" stroke="var(--card)" stroke-width="3" transform="rotate(-12 61 221)"/></g>
+        <!-- 11 Licence badge -->
+        <g class="part" data-p="10"><rect x="116" y="170" width="30" height="22" rx="3" fill="var(--card)" stroke="var(--amber)" stroke-width="3"/><path d="M122 178 h18 M122 185 h12" stroke="var(--amber)" stroke-width="2.5"/></g>
+        <!-- 12 Ground and colleagues -->
+        <g class="part" data-p="11"><ellipse cx="150" cy="362" rx="110" ry="9" fill="var(--teal-soft)"/>
+          <g fill="var(--muted)" opacity=".75"><circle cx="30" cy="290" r="14"/><path d="M14 360 Q14 312 30 310 Q46 312 46 360Z"/><circle cx="270" cy="290" r="14"/><path d="M254 360 Q254 312 270 310 Q286 312 286 360Z"/></g></g>
+      </svg>
+      <div class="prog"><b id="count">0 / 12</b><span id="level">Not yet licensed</span></div>
+      <div class="bar"><i id="fill"></i></div>
+      <ul class="parts" id="partList"></ul>
+      <div class="stats"><span id="sRight">Correct 0</span><span id="sWrong">Wrong 0</span><span id="sQ">Questions 0</span></div>
+    </aside>
+
+    <article class="q" id="stage" aria-live="polite"></article>
+  </div>
+
+  <p class="foot">Content from Welfel, E. R. (2016). <i>Ethics in counseling and psychotherapy: Standards, research, and emerging issues</i> (6th ed.), Chapter 4: Competence to practice. Covered as Chapter 3 in this course. Prepared by Dr. Priyalatha Govindasamy, Universiti Pendidikan Sultan Idris.</p>
+</div>
+
+<script>
+(function(){
+const PARTS = ["Head","Body","Left arm","Right arm","Left leg","Right leg","Eyes: sensitivity","Smile: empathy","Heart: diligence","Book: knowledge","Licence","Colleagues: support"];
+const GOAL = PARTS.length;
+const KSD = ["Knowledge","Skill","Diligence"];
+const TAGS = {Sort:["var(--teal-soft)","var(--teal)"], Case:["var(--amber-soft)","var(--amber)"], Hearing:["var(--violet-soft)","var(--violet)"]};
+
+function sort(q, a, why){ return {type:"Sort", title:"Which component of competence?", q, opts:KSD.map(k => [k, 0]), a, why}; }
+const BANK = [
+  sort("You read new research on anxiety treatment every month.", 0, "Staying current in theory and research is knowledge, or knowing about."),
+  sort("You build trust with a wary teenager in the first session.", 1, "Building a working alliance is a clinical skill, or knowing how."),
+  sort("You follow up with clients three months after services end.", 2, "Following up to check the benefit lasted is diligence."),
+  sort("You recognise the limits of what current research can tell you.", 0, "Knowing the limits of current understanding is part of knowledge."),
+  sort("You decide which intervention fits this particular client.", 1, "Tricky one. Judging which intervention applies in a situation is part of skill."),
+  sort("You notice you are exhausted and arrange cover for your sessions.", 2, "Self monitoring and self care are the emotional side of diligence."),
+  sort("You administer an intelligence test exactly to standard.", 1, "Using a specific technique well is a technical skill."),
+  sort("You ask a colleague to review your cases because you might overrate yourself.", 2, "Humility about your own accuracy, and consulting others, is diligence."),
+  sort("You can judge a new therapy using objective scientific criteria.", 0, "Having scientific criteria to judge new theory and research is knowledge."),
+
+  {type:"Case", title:"Two days of reading, no supervision", q:"A couple asks for sex therapy. You have read several books and attended a two day workshop, but have no supervised experience. An experienced colleague offers to supervise you closely.",
+   opts:[["Accept, because the problem usually responds to therapy","bad","A common problem does not make you competent. Skill needs supervised practice."],
+         ["Accept with close supervision, after telling the couple you are new to this","best","Close supervision plus informed consent can make this ethical, as long as you fill the gaps in your knowledge."],
+         ["Refer them to the experienced colleague","part","Also ethical and the safest choice. Supervised work with consent is equally acceptable here."]]},
+  {type:"Case", title:"The only counsellor for 100 km", q:"You work as a generalist in a rural town. An adult asks for help with mild work stress. The nearest other counsellor is a two hour drive away.",
+   opts:[["Refer, because you are not a specialist in work stress","part","Not wrong, but the client may give up on help. Low risk and high benefit favour helping."],
+         ["Accept, tell the client about your level of skill, and monitor progress","best","Low risk of harm, good chance to help and no easy referral. Informed consent and close monitoring complete it."],
+         ["Accept without mentioning your training","bad","Near the edge of your competence, clients should know your level of skill."]]},
+  {type:"Case", title:"Too close to home", q:"You are going through a painful divorce, sleeping badly and crying between sessions. A new client wants help ending a bitter marriage.",
+   opts:[["See the client, since you understand divorce first hand","bad","Your own distress threatens objectivity. Being emotionally able to help is part of competence."],
+         ["Refer this client, and seek support for yourself","best","Ask: am I emotionally able to help? Here the answer is no. The codes require you to limit practice and get help."],
+         ["See the client but avoid talking about your feelings","part","Hiding it does not restore objectivity. Supervision is the minimum; referral is safer."]]},
+  {type:"Case", title:"A therapy for everything", q:"A colleague returns from a one day seminar on a new therapy said to treat all personality disorders and addictions. There is no published research. She wants you both to start using it on Monday.",
+   opts:[["Start on Monday with mild cases only","bad","Without independent research the method is experimental, and one day gives no supervised practice."],
+         ["Use it only with clients who give informed consent","part","Consent helps, but cannot make you competent in an untested method when proven treatments exist."],
+         ["Decline until there is evidence, proper training and supervised practice","best","Check the four criteria: scientific evidence, enough learning time, a real expert, and supervised practice."]]},
+  {type:"Case", title:"Same method, younger clients", q:"Your career counselling programme works well with university students. A middle school asks you to run it unchanged with 12 year olds.",
+   opts:[["Run it unchanged, since it is proven to work","bad","Proven with one age group is not proven with another. It may even cause harm."],
+         ["Adapt it after training or consultation on this age group, or refer","best","Competence extends to populations. Age and development change how an intervention lands."],
+         ["Run it but simplify the language","part","Simpler words help, but you still lack knowledge of this group's development."]]},
+  {type:"Case", title:"Crisis at 9 pm", q:"A client in your rural practice discloses a crisis outside your usual work. The nearest specialist service is three hours away and cannot see her tonight.",
+   opts:[["Refuse, because it is outside your competence","bad","In an emergency with no other help available, refusing can cause more harm."],
+         ["Help her now as conservatively as you can, then refer as soon as possible","best","The APA Code allows care beyond your competence in an emergency, with referral as soon as feasible."],
+         ["Help her and plan to keep working with her long term","part","Helping now is right, but you must get her to competent care as soon as you can."]]},
+
+  {type:"Hearing", title:"Put up or shut up", q:"A counsellor, frustrated by a client's repeated talk of suicide, tells her to \"put up or shut up\". That afternoon she takes an overdose. Is this negligence?",
+   opts:[["Yes. Duty, breach, injury and cause are all proven","best","An ongoing relationship, a remark no competent counsellor would make, real injury and a direct link."],
+         ["No. Clients are responsible for their own actions","bad","The counsellor's remark directly contributed to the harm, so cause is proven."],
+         ["No. One careless remark is an ordinary mistake","bad","Competent professionals would not make this remark, so it breaches the standard of care."]]},
+  {type:"Hearing", title:"Advice at a party", q:"At a wedding, a stranger asks a psychologist about his anxiety. She gives poor advice. Weeks later he quits his job and blames her. Is this negligence?",
+   opts:[["Yes. The advice was poor and he suffered a loss","bad","Poor advice and a loss are not enough. All four elements are needed."],
+         ["No. There was no professional relationship, so no duty","best","She was not his psychologist. Without a duty, there can be no negligence."],
+         ["No. He was not physically injured","bad","Injury need not be physical. The case fails because there was no duty."]]},
+  {type:"Hearing", title:"Ignored and fine", q:"A therapist makes a careless suggestion. The client ignores it, sees another professional that week, and is doing well. Is this negligence?",
+   opts:[["Yes. The suggestion fell below the standard of care","bad","Breach alone is not enough. All four elements are needed."],
+         ["No. There was no injury","best","No harm means no legal negligence. An ethics complaint could still succeed, since that does not require injury."],
+         ["No. There was no duty, since the client saw someone else","bad","A professional relationship existed, so there was a duty."]]},
+  {type:"Hearing", title:"Good care, bad luck", q:"A counsellor uses a standard, evidence based approach, as any competent colleague would. The client gets worse after losing his job and sues. Is this negligence?",
+   opts:[["Yes. The client got worse during treatment","bad","A bad outcome is not proof of negligence."],
+         ["No. Care met the standard, and the job loss caused the decline","best","No breach and no cause. Ordinary bad outcomes are not negligence."],
+         ["No. Only physical harm counts in court","bad","Psychological harm can count. This fails on breach and cause."]]}
+];
+BANK.forEach(b => { if (b.type === "Sort") b.opts = KSD.map((k,i) => [k, i === b.a ? "best" : "bad", b.why]); });
+
+const stage = document.getElementById("stage"), partEls = [...document.querySelectorAll(".part")];
+let built, deck, right, wrong, asked, missed;
+
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function btn(cls, txt, fn){ const b = document.createElement("button"); b.className = cls; b.textContent = txt; b.onclick = fn; return b; }
+function level(n){ return n === 0 ? "Not yet licensed" : n < 4 ? "Incompetent" : n < 7 ? "Novice" : n < 10 ? "Competent" : n < 12 ? "Proficient" : "Exceptionally competent"; }
+
+function draw(change){
+  partEls.forEach((p,i) => {
+    const on = i < built;
+    if (change === "add" && i === built - 1) { p.classList.remove("fall"); p.classList.add("on"); p.classList.remove("pop"); void p.getBBox(); p.classList.add("pop"); }
+    else if (change === "remove" && i === built) { p.classList.remove("pop"); p.classList.add("fall"); setTimeout(() => { p.classList.remove("fall"); if (i >= built) p.classList.remove("on"); }, 600); }
+    else if (change !== "remove" || i !== built) p.classList.toggle("on", on);
+  });
+  document.getElementById("count").textContent = built + " / " + GOAL;
+  document.getElementById("level").textContent = level(built);
+  document.getElementById("fill").style.width = (built / GOAL * 100) + "%";
+  document.getElementById("partList").innerHTML = PARTS.map((p,i) => `<li class="${i < built ? "got" : ""}">${p}</li>`).join("");
+  document.getElementById("sRight").textContent = "Correct " + right;
+  document.getElementById("sWrong").textContent = "Wrong " + wrong;
+  document.getElementById("sQ").textContent = "Questions " + asked;
+}
+
+function intro(){
+  built = 0; right = 0; wrong = 0; asked = 0; missed = []; deck = shuffle(BANK.slice());
+  partEls.forEach(p => p.classList.remove("on","pop","fall"));
+  draw();
+  stage.innerHTML = `<div class="kicker"><span>How to play</span><span>${BANK.length} questions in the bank</span></div>
+  <h2>Build a fully competent practitioner.</h2>
+  <ul class="rules">
+    <li><span class="n" style="background:var(--teal)">✓</span><div><b>Best answer:</b> a new piece is added.</div></li>
+    <li><span class="n" style="background:var(--amber)">~</span><div><b>Acceptable but not the best:</b> nothing changes.</div></li>
+    <li><span class="n" style="background:var(--coral)">✕</span><div><b>Wrong answer:</b> the last piece falls off.</div></li>
+  </ul>
+  <p>You need all ${GOAL} pieces to win. Questions you miss come back later, so keep going until your practitioner is complete.</p>
+  <div class="row"><span class="note">Three kinds of question: sort it, take the case, and the hearing.</span></div>`;
+  stage.querySelector(".row").appendChild(btn("go", "Start building", ask));
+}
+
+function ask(){
+  if (built >= GOAL) return win();
+  if (!deck.length) { deck = shuffle(missed.length ? missed : BANK.slice()); missed = []; }
+  const it = deck.shift(); asked++;
+  const order = it.type === "Sort" ? it.opts.map((_,i) => i) : shuffle(it.opts.map((_,i) => i));
+  const [bg, fg] = TAGS[it.type];
+  const label = {Sort:"Sort it", Case:"Take the case?", Hearing:"The hearing"}[it.type];
+  stage.innerHTML = `<div class="kicker"><span class="tag" style="background:${bg};color:${fg}">${label}</span><span>Question ${asked}</span></div>
+    <h2>${esc(it.type === "Sort" ? it.q : it.title)}</h2>${it.type === "Sort" ? `<p class="note">${esc(it.title)}</p>` : `<p>${esc(it.q)}</p>`}
+    <div class="choices">${order.map(i => `<button class="ch" data-i="${i}">${esc(it.opts[i][0])}</button>`).join("")}</div><div id="fb"></div>`;
+  stage.querySelectorAll(".ch").forEach(b => b.onclick = () => answer(it, +b.dataset.i));
+  draw();
+}
+
+function answer(it, i){
+  const kind = it.opts[i][1];
+  stage.querySelectorAll(".ch").forEach(b => { b.disabled = true; const k = it.opts[+b.dataset.i][1]; if (k === "best") b.classList.add("best"); else if (+b.dataset.i === i) b.classList.add(k === "part" ? "part2" : "bad"); });
+  let head, cls, change;
+  if (kind === "best") { right++; built = Math.min(GOAL, built + 1); change = "add"; cls = "good"; head = "Correct. " + PARTS[built - 1] + " added."; }
+  else if (kind === "part") { missed.push(it); change = null; cls = "mid"; head = "Acceptable, but not the best. Nothing changes."; }
+  else { wrong++; missed.push(it); cls = "lost";
+    if (built > 0) { built--; change = "remove"; head = "Not quite. " + PARTS[built] + " falls off."; }
+    else { change = null; head = "Not quite. Nothing left to lose yet."; } }
+  draw(change);
+  const best = it.opts.find(o => o[1] === "best");
+  const fb = stage.querySelector("#fb");
+  fb.innerHTML = `<div class="fb ${cls}"><b>${esc(head)}</b>${esc(it.opts[i][2])}${kind !== "best" && it.type !== "Sort" ? "<br><br><b style='font-size:15px'>Best answer</b>" + esc(best[0]) + ". " + esc(best[2]) : ""}</div><div class="row"><span class="note">${GOAL - built} piece${GOAL - built === 1 ? "" : "s"} to go</span></div>`;
+  fb.querySelector(".row").appendChild(btn("go", built >= GOAL ? "Finish" : "Next question", ask));
+  fb.querySelector(".go").focus();
+}
+
+function win(){
+  const acc = Math.round(right / asked * 100);
+  stage.innerHTML = `<div class="kicker"><span class="tag" style="background:var(--teal-soft);color:var(--teal)">Complete</span><span>${asked} questions</span></div>
+    <h2>Your practitioner is exceptionally competent.</h2>
+    <p>Knowledge, skill and diligence, with colleagues beside you for support. You answered ${right} of ${asked} correctly (${acc}%).</p>
+    <p>${wrong === 0 ? "Not a single piece lost. Outstanding." : wrong <= 3 ? "Only a few pieces lost along the way. Strong judgement." : "It took a few rebuilds. Look back at Chapter 3 on the topics that tripped you up, then try again for fewer losses."}</p>
+    <div class="row"><span class="note">Competence is a career long effort, not a fixed score.</span></div>`;
+  stage.querySelector(".row").appendChild(btn("alt", "Play again", intro));
+}
+
+intro();
+})();
+</script>
+
+</body>
+</html>
